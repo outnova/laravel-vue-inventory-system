@@ -28,6 +28,12 @@ const form = ref({
     category_id: ''
 })
 
+const toast = ref({
+    show: false,
+    message: '',
+    type: 'success'
+})
+
 // Methods
 
 const fetchProducts = async () => {
@@ -37,7 +43,7 @@ const fetchProducts = async () => {
         products.value = data.data
         pagination.value = data.meta
     } catch (error) {
-        alert("Error al cargar productos")
+        showToast("Error al cargar los productos", "error")
     } finally {
         loading.value = false
     }
@@ -56,6 +62,7 @@ const resetForm = () => {
 }
 
 const saveProduct = async () => {
+    loading.value = true
     try {
         if (isEditing.value) {
             await axiosClient.put(`/products/${form.value.id}`, form.value)
@@ -63,32 +70,60 @@ const saveProduct = async () => {
             await axiosClient.post(`/products`, form.value)
         }
         showModal.value = false
-        resetForm()
-        fetchProducts() //Reload table
-    } catch (error) {
-        // Imprime el error completo para investigar en la consola
-        console.error("Error completo de Axios:", error);
+        const successMessage = isEditing.value ? "Producto actualizado" : "Producto creado con éxito"
 
-        // Verificamos si hay respuesta del servidor antes de leerla
-        const serverErrors = error.response?.data?.errors;
-        
-        if (serverErrors) {
-            alert("Errores de validación: " + JSON.stringify(serverErrors));
+        resetForm()
+        await fetchProducts() //Reload table
+        showToast(successMessage, "success")
+
+    } catch (error) {
+        // Show technical errors
+        console.error("Error completo de Axios:", {
+            status: error.response?.status,
+            data: error.response?.data,
+            message: error.message
+        })
+
+        const status = error.response?.status
+        const serverErrors = error.response?.data?.errors
+
+        if(status === 422 && serverErrors) {
+            const firstError = Object.values(serverErrors[0][0])
+            showToast(firstError, "error")
+        } else if(status === 404) {
+            //Error 404
+            showToast("El producto ya no existe en el servidor", "error")
         } else {
-            alert("Error crítico del servidor (500). Revisa los logs de Laravel.");
+            //Error 500 or similar
+            showToast("No pudimos conectar con el servidor. Intenta más tarde.", "error")
         }
+    } finally {
+        loading.value = false
     }
 }
 
 const deleteProduct = async (id) => {
-    if (!confirm('¿Estás seguro de eliminar este producto?')) return
-
-    try {
-        await axiosClient.delete(`/products/${id}`)
-        fetchProducts() //Reload list
-    } catch (error) {
-        alert("No se pudo eliminar el producto")
+    if (confirm('¿Estás seguro de eliminar este producto?')) {
+        loading.value = true
+        try {
+            await axiosClient.delete(`/products/${id}`)
+            await fetchProducts() //Reload list
+            showToast('Producto eliminado correctamente', 'success')
+        } catch (error) {
+            showToast('No se pudo eliminar el producto', 'error')
+        } finally {
+            loading.value = false
+        }
     }
+}
+
+const showToast = (message, type = 'success') => {
+    toast.value = { show: true, message, type }
+
+    //Automatic hidden in 3 seconds..
+    setTimeout(() => {
+        toast.value.show = false
+    }, 3000)
 }
 
 //Listen filter changes to reload the table
@@ -101,7 +136,7 @@ watch(() => [filters.value.search, filters.value.category_id, filters.value.sort
 watch(
     () => filters.value.page, 
     () => {
-        fetchProducts();
+        fetchProducts()
     }
 )
 
@@ -345,4 +380,43 @@ onMounted(() => {
             </div>
         </div>
     </div>
+    <Transition
+        enter-active-class="transform ease-out duration-300 transition"
+        enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+        enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
+        leave-active-class="transition ease-in duration-100"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+    >
+        <div v-if="toast.show" 
+            class="fixed top-5 right-5 z-[100] max-w-sm w-full shadow-2xl rounded-2xl pointer-events-auto overflow-hidden border"
+            :class="toast.type === 'success' ? 'bg-white border-green-100' : 'bg-white border-red-100'">
+            <div class="p-4 flex items-center gap-3">
+                <div v-if="toast.type === 'success'" class="flex-shrink-0 w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
+                    <span class="text-xl">✓</span>
+                </div>
+                <div v-else class="flex-shrink-0 w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center">
+                    <span class="text-xl">✕</span>
+                </div>
+                
+                <div class="flex-1">
+                    <p class="text-sm font-bold text-gray-900">
+                        {{ toast.type === 'success' ? '¡Logrado!' : 'Hubo un problema' }}
+                    </p>
+                    <p class="text-sm text-gray-500">
+                        {{ toast.message }}
+                    </p>
+                </div>
+                
+                <button @click="toast.show = false" class="text-gray-400 hover:text-gray-600 px-2 text-xl font-light">
+                    ×
+                </button>
+            </div>
+            <div class="h-1 bg-gray-100 w-full">
+                <div class="h-full bg-blue-500 transition-all duration-[3000ms] ease-linear"
+                    :class="toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'"
+                    :style="{ width: toast.show ? '100%' : '0%' }"></div>
+            </div>
+        </div>
+    </Transition>
 </template>
