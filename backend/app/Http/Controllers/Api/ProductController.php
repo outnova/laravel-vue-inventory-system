@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreProductRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -46,7 +47,7 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreProductRequest $request)
     {
         $product = Product::create($request->validated());
 
@@ -68,7 +69,7 @@ class ProductController extends Controller
     {
         $data = $request->validate([
             'name'           => 'sometimes|string|max:255',
-            'sku'            => 'sometimes|string|unique:products,sku' . $product->id,
+            'sku'            => 'sometimes|string|unique:products,sku,' . $product->id,
             'price'          => 'sometimes|numeric|min:0',
             'stock'          => 'sometimes|integer|min:0',
             'category_id'    => 'sometimes|exists:categories,id',
