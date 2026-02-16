@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import axiosClient from '../api/axios'
 
 //State
@@ -69,11 +69,15 @@ const saveProduct = async () => {
         } else {
             await axiosClient.post(`/products`, form.value)
         }
-        showModal.value = false
-        const successMessage = isEditing.value ? "Producto actualizado" : "Producto creado con éxito"
 
+        showModal.value = false
+        await nextTick()
+
+        const successMessage = isEditing.value ? "Producto actualizado" : "Producto creado con éxito"
         resetForm()
+
         await fetchProducts() //Reload table
+        
         showToast(successMessage, "success")
 
     } catch (error) {
@@ -120,7 +124,7 @@ const deleteProduct = async (id) => {
 const showToast = (message, type = 'success') => {
     toast.value = { show: true, message, type }
 
-    //Automatic hidden in 3 seconds..
+    //Automatic hide in 3 seconds..
     setTimeout(() => {
         toast.value.show = false
     }, 3000)
