@@ -243,26 +243,40 @@ onMounted(() => {
                     </tbody>
                 </table>
             </div>
-            <div class="p-4 bg-gray-50 border-t flex items-center justify-between">
-                <span class="text-sm text-gray-600">
-                    Mostrando página {{ pagination.current_page }} de {{ pagination.last_page }}
-                </span>
-                
-                <div class="flex gap-2">
-                    <button 
-                        @click="filters.page--" 
-                        :disabled="filters.page <= 1"
-                        class="px-4 py-2 border rounded-lg bg-white hover:bg-gray-100 disabled:opacity-50"
-                    >
-                        Anterior
-                    </button>
-                    <button 
-                        @click="filters.page++" 
-                        :disabled="filters.page >= pagination.last_page"
-                        class="px-4 py-2 border rounded-lg bg-white hover:bg-gray-100 disabled:opacity-50"
-                    >
-                        Siguiente
-                    </button>
+            <div class="border-t">
+                <div v-if="pagination.total > 0" class="p-4 bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <span class="text-sm text-gray-600 font-medium">
+                        Mostrando página <span class="text-blue-600">{{ pagination.current_page }}</span> de {{ pagination.last_page }}
+                    </span>
+                    
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button 
+                            @click="filters.page--" 
+                            :disabled="filters.page <= 1 || loading"
+                            class="flex-1 sm:flex-none px-4 py-2 border rounded-lg bg-white hover:bg-gray-100 disabled:opacity-50 transition-colors font-medium text-gray-700"
+                        >
+                            Anterior
+                        </button>
+                        <button 
+                            @click="filters.page++" 
+                            :disabled="filters.page >= pagination.last_page || loading"
+                            class="flex-1 sm:flex-none px-4 py-2 border rounded-lg bg-white hover:bg-gray-100 disabled:opacity-50 transition-colors font-medium text-gray-700"
+                        >
+                            Siguiente
+                        </button>
+                    </div>
+                </div>
+
+                <div v-else-if="loading" class="p-4 bg-gray-50 flex items-center justify-between animate-pulse">
+                    <div class="h-4 w-32 bg-gray-200 rounded-full"></div>
+                    <div class="flex gap-2">
+                        <div class="h-9 w-20 bg-gray-200 rounded-lg"></div>
+                        <div class="h-9 w-20 bg-gray-200 rounded-lg"></div>
+                    </div>
+                </div>
+
+                <div v-else-if="pagination.total === 0" class="p-8 text-center bg-gray-50">
+                    <p class="text-gray-500 text-sm italic">No se encontraron productos con los filtros aplicados.</p>
                 </div>
             </div>
         </div>
