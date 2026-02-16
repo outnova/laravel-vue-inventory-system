@@ -1,0 +1,38 @@
+# --- IDEs & OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Docker & Environment ---
+.env
+.env.backup
+.env.production
+docker-compose.override.yml
+
+# --- Laravel (Backend) ---
+/backend/vendor/
+/backend/node_modules/
+/backend/public/storage
+/backend/public/hot
+/backend/storage/*.key
+/backend/storage/framework/cache/data/*
+/backend/storage/framework/sessions/*
+/backend/storage/framework/testing/*
+/backend/storage/framework/views/*
+/backend/storage/logs/*
+/backend/.phpunit.result.cache
+/backend/auth.json
+
+# --- Vue 3 (Frontend) ---
+/frontend/node_modules/
+/frontend/dist/
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/.eslintcache
+/frontend/.stylelintcache
+
+# --- Logs & Misc ---
+*.log
+.phpunit.result.cache
