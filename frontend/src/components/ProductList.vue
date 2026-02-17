@@ -50,6 +50,12 @@ const stats = ref({
     top_category: 'Cargando...'
 });
 
+const animatedStats = ref({
+    total_value: 0,
+    low_stock: 0,
+    total_products: 0
+})
+
 // Methods
 
 const fetchProducts = async () => {
@@ -151,10 +157,40 @@ const showToast = (message, type = 'success') => {
 const fetchStats = async () => {
     try {
         const { data } = await axiosClient.get('/dashboard-stats');
-        stats.value = data
+
+        animateNumber('total_products', data.total_products)
+        animateNumber('low_stock', data.low_stock)
+        animateNumber('total_value', data.total_value)
+
+        //stats.value = data
+        stats.value.top_category = data.top_category
     } catch(error) {
         console.error("Error al cargar estadisticas:", error)
     }
+}
+
+const animateNumber = (key, target) => {
+    const duration = 1000
+    const startValue = animatedStats.value[key]
+    const startTime = performance.now()
+
+    const update = (currentTime) => {
+        const elapsed = currentTime - startTime
+        const progress = Math.min(elapsed / duration, 1)
+
+        const easeOutQuad = (t) => t * (2 - t)
+
+        const currentValue = startValue + (target - startValue) * easeOutQuad(progress)
+        animatedStats.value[key] = currentValue
+
+        if (progress < 1) {
+            requestAnimationFrame(update)
+        } else {
+            animatedStats.value[key] = target
+        }
+    }
+
+    requestAnimationFrame(update)
 }
 
 //Listen filter changes to reload the table
@@ -227,7 +263,7 @@ onMounted(() => {
                     </div>
                     <div>
                         <p class="text-sm text-gray-500 font-medium">Total Productos</p>
-                        <p class="text-2xl font-black text-gray-800">{{ stats.total_products }}</p>
+                        <p class="text-2xl font-black text-gray-800">{{ Math.floor(animatedStats.total_products) }}</p>
                     </div>
                 </div>
 
@@ -238,7 +274,7 @@ onMounted(() => {
                     <div>
                         <p class="text-sm text-gray-500 font-medium">Valor Capital</p>
                         <p class="text-2xl font-black text-gray-800">$
-                            {{ formatCurrency(stats.total_value) }}</p>
+                            {{ formatCurrency(animatedStats.total_value) }}</p>
                     </div>
                 </div>
 
@@ -248,7 +284,7 @@ onMounted(() => {
                     </div>
                     <div>
                         <p class="text-sm text-gray-500 font-medium">Stock Crítico</p>
-                        <p class="text-2xl font-black text-red-600">{{ stats.low_stock }}</p>
+                        <p class="text-2xl font-black text-red-600">{{ Math.floor(animatedStats.low_stock) }}</p>
                     </div>
                 </div>
 
