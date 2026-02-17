@@ -34,6 +34,13 @@ const toast = ref({
     type: 'success'
 })
 
+const stats = ref({
+    total_value: 0,
+    low_stock: 0,
+    total_products: 0,
+    top_category: 'Cargando...'
+});
+
 // Methods
 
 const fetchProducts = async () => {
@@ -77,6 +84,7 @@ const saveProduct = async () => {
         resetForm()
 
         await fetchProducts() //Reload table
+        await fetchStats()
         
         showToast(successMessage, "success")
 
@@ -112,6 +120,7 @@ const deleteProduct = async (id) => {
         try {
             await axiosClient.delete(`/products/${id}`)
             await fetchProducts() //Reload list
+            await fetchStats()
             showToast('Producto eliminado correctamente', 'success')
         } catch (error) {
             showToast('No se pudo eliminar el producto', 'error')
@@ -128,6 +137,15 @@ const showToast = (message, type = 'success') => {
     setTimeout(() => {
         toast.value.show = false
     }, 3000)
+}
+
+const fetchStats = async () => {
+    try {
+        const { data } = await axiosClient.get('/dashboard-stats');
+        stats.value = data
+    } catch(error) {
+        console.error("Error al cargar estadisticas:", error)
+    }
 }
 
 //Listen filter changes to reload the table
@@ -147,6 +165,7 @@ watch(
 onMounted(() => {
     fetchProducts()
     fetchCategories()
+    fetchStats()
 })
 </script>
 
@@ -192,7 +211,47 @@ onMounted(() => {
                     <span class="text-xl">+</span> Nuevo Producto
                 </button>
             </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl font-bold">
+                        📦
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium">Total Productos</p>
+                        <p class="text-2xl font-black text-gray-800">{{ stats.total_products }}</p>
+                    </div>
+                </div>
 
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                    <div class="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center text-xl font-bold">
+                        💰
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium">Valor Capital</p>
+                        <p class="text-2xl font-black text-gray-800">${{ stats.total_value }}</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                    <div class="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center text-xl font-bold">
+                        ⚠️
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium">Stock Crítico</p>
+                        <p class="text-2xl font-black text-red-600">{{ stats.low_stock }}</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                    <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-xl font-bold">
+                        🏆
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium">Categoría Líder</p>
+                        <p class="text-md font-black text-gray-800 truncate w-32">{{ stats.top_category }}</p>
+                    </div>
+                </div>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <input 
                     v-model.lazy="filters.search"
