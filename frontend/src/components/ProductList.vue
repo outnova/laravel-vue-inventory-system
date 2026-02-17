@@ -34,6 +34,15 @@ const toast = ref({
     type: 'success'
 })
 
+const formatCurrency = (value) => {
+    const number = parseFloat(value) || 0
+
+    return new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(number)
+}
+
 const stats = ref({
     total_value: 0,
     low_stock: 0,
@@ -228,7 +237,8 @@ onMounted(() => {
                     </div>
                     <div>
                         <p class="text-sm text-gray-500 font-medium">Valor Capital</p>
-                        <p class="text-2xl font-black text-gray-800">${{ stats.total_value }}</p>
+                        <p class="text-2xl font-black text-gray-800">$
+                            {{ formatCurrency(stats.total_value) }}</p>
                     </div>
                 </div>
 
@@ -313,7 +323,9 @@ onMounted(() => {
                                     {{ product.category?.name || 'S/C' }}
                                 </span>
                             </td>
-                            <td class="p-4 font-semibold">${{ product.price.toFixed(2) }}</td>
+                            <td class="p-4 font-semibold">
+                                ${{ formatCurrency(product.price) }}
+                            </td>
                             <td class="p-4 text-center">
                                 <span :class="[
                                     'px-3 py-1 rounded-full text-xs font-bold',
