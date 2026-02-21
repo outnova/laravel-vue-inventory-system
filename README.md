@@ -37,8 +37,8 @@ Este proyecto implementa una arquitectura limpia separando lógica de negocio y 
 ## 1️⃣ Clonar el repositorio
 
 ```bash
-git clone https://github.com/outnova/laravel-vue-inventory-system
-cd laravel-vue-inventory-system
+git clone https://github.com/outnova/inventory-pro
+cd inventory-pro
 ```
 
 ---
@@ -199,8 +199,8 @@ src/
 ## 1️⃣ Clone the repository
 
 ```bash
-git clone https://github.com/outnova/laravel-vue-inventory-system
-cd laravel-vue-inventory-system
+git clone https://github.com/outnova/inventory-pro
+cd inventory-pro
 ```
 
 ---
